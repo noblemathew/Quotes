@@ -18,36 +18,58 @@ cloudinary.v2.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-async function fetchAndUploadImages() {
-  const accessKey = process.env.UNSPLASH_KEY;
-  const res = await fetch(`https://api.unsplash.com/photos/random?query=motivational,quotes&count=50&orientation=portrait&client_id=${accessKey}`);
-  const images = await res.json();
+async function main() {
+  try {
+    // Dates
+    const today = new Date();
+    const todayStr = today.toISOString().split("T")[0]; // "2025-09-18"
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split("T")[0];
 
-  const today = new Date().toISOString().split("T")[0];
-  const dbRef = db.ref(`daily_images/${today}`);
+    // 1️⃣ Delete yesterday’s Cloudinary folder
+    try {
+      await cloudinary.v2.api.delete_resources_by_prefix(`daily_images/${yesterdayStr}/`);
+      await cloudinary.v2.api.delete_folder(`daily_images/${yesterdayStr}`);
+      console.log("Deleted yesterday’s Cloudinary folder:", yesterdayStr);
+    } catch (err) {
+      console.log("No Cloudinary folder to delete or error:", err.message);
+    }
 
-  for (const img of images) {
-    const imageResponse = await fetch(img.urls.full);
-    const buffer = await imageResponse.arrayBuffer();
-    
-    // Upload to Cloudinary
-    await new Promise((resolve, reject) => {
-      cloudinary.v2.uploader.upload_stream(
-        { folder: `daily_images/${today}`, public_id: uuidv4() },
-        async (error, result) => {
-          if (error) return reject(error);
-          // Save URL in Firebase
-          await dbRef.push({
-            url: result.secure_url,
-            author: img.user.name
-          });
-          console.log("Uploaded:", result.secure_url);
-          resolve();
-        }
-      ).end(Buffer.from(buffer));
-    });
+    // 2️⃣ Delete yesterday’s Firebase DB entry
+    try {
+      await db.ref(`daily_images/${yesterdayStr}`).remove();
+      console.log("Deleted yesterday’s Firebase DB entry:", yesterdayStr);
+    } catch (err) {
+      console.log("No Firebase entry to delete or error:", err.message);
+    }
+
+    // 3️⃣ Fetch 50 motivational 9:16 images from Unsplash
+    const unsplashKey = process.env.UNSPLASH_KEY;
+    const response = await fetch(`https://api.unsplash.com/photos/random?query=motivationalquotes&count=50&orientation=portrait&client_id=${unsplashKey}`);
+    const images = await response.json();
+
+    // 4️⃣ Upload to Cloudinary and save URLs in Firebase
+    const batchRef = db.ref(`daily_images/${todayStr}`);
+    for (const img of images) {
+      const imageId = uuidv4();
+      const cloudRes = await cloudinary.v2.uploader.upload(img.urls.full, {
+        folder: `daily_images/${todayStr}`,
+        public_id: imageId
+      });
+
+      await batchRef.child(imageId).set({
+        url: cloudRes.secure_url,
+        author: img.user.name
+      });
+
+      console.log(`Uploaded image ${imageId}: ${cloudRes.secure_url}`);
+    }
+
+    console.log("All 50 images uploaded successfully for today:", todayStr);
+  } catch (err) {
+    console.error("Error in daily image workflow:", err);
   }
-  console.log("All 50 images uploaded successfully!");
 }
 
-fetchAndUploadImages();
+main();

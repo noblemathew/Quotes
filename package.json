@@ -1,18 +1,12 @@
 {
-  "name": "web",
+  "name": "daily-motivational-images",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
-    "cloudinary": "^2.7.0",
-    "firebase-admin": "^13.5.0",
     "node-fetch": "^3.3.2",
-    "uuid": "^13.0.0"
+    "cloudinary": "^1.37.0",
+    "firebase-admin": "^11.5.0",
+    "uuid": "^9.0.0"
   }
 }

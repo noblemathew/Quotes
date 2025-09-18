@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://quotes-5fa17-default-rtdb.firebaseio.com"
+  databaseURL: "https://quoteapp-8f9fd-default-rtdb.firebaseio.com"
 });
 const db = admin.database();
 
@@ -44,9 +44,8 @@ async function main() {
       console.log("No Firebase entry to delete or error:", err.message);
     }
 
-    // 3️⃣ Fetch 50 motivational 9:16 images from Unsplash
     const unsplashKey = process.env.UNSPLASH_KEY;
-    const response = await fetch(`https://api.unsplash.com/photos/random?query=motivational,inspiration,success&count=50&orientation=portrait&client_id=${unsplashKey}`);
+    const response = await fetch(`https://api.unsplash.com/photos/random?query=quotes&count=50&orientation=portrait&client_id=${unsplashKey}`);
     const images = await response.json();
 
     // 4️⃣ Upload to Cloudinary and save URLs in Firebase

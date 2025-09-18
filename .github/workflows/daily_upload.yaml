@@ -1,22 +1,25 @@
-name: Daily Unsplash Upload
+name: Daily Motivational Images
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # runs daily at midnight UTC
-  workflow_dispatch:      # allows manual run
+    - cron: '0 0 * * *' # every day at midnight UTC
+  workflow_dispatch: # manual trigger
 
 jobs:
-  upload:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Setup Node
+
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
+
       - name: Install dependencies
         run: npm install
-      - name: Run upload script
+
+      - name: Run daily image script
         run: node index.js
         env:
           UNSPLASH_KEY: ${{ secrets.UNSPLASH_KEY }}

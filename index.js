@@ -46,7 +46,7 @@ async function main() {
 
     // 3️⃣ Fetch 50 motivational 9:16 images from Unsplash
     const unsplashKey = process.env.UNSPLASH_KEY;
-    const response = await fetch(`https://api.unsplash.com/photos/random?query=motivationalquotes&count=50&orientation=portrait&client_id=${unsplashKey}`);
+    const response = await fetch(`https://api.unsplash.com/photos/random?query=motivationalquotes&count=40&orientation=portrait&client_id=${unsplashKey}`);
     const images = await response.json();
 
     // 4️⃣ Upload to Cloudinary and save URLs in Firebase
@@ -66,7 +66,7 @@ async function main() {
       console.log(`Uploaded image ${imageId}: ${cloudRes.secure_url}`);
     }
 
-    console.log("All 50 images uploaded successfully for today:", todayStr);
+    console.log("All 40 images uploaded successfully for today:", todayStr);
   } catch (err) {
     console.error("Error in daily image workflow:", err);
   }

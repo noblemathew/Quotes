@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://quoteapp-8f9fd-default-rtdb.firebaseio.com"
+  databaseURL: "https://quotes-app-india-default-rtdb.firebaseio.com"
 });
 const db = admin.database();
 

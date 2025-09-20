@@ -11,7 +11,7 @@ if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: `https://${serviceAccount.project_id}-default-rtdb.firebaseio.com`
+  databaseURL: "https://quotes-app-india-default-rtdb.firebaseio.com"
 });
 const db = admin.database();
 
@@ -48,11 +48,11 @@ async function main() {
       console.log("⚠️ No Firebase entry to delete:", err.message);
     }
 
-    // 5️⃣ Fetch 50 motivational portrait images from Unsplash
+    // 5️⃣ Fetch 30 motivational portrait images from Unsplash
     const unsplashKey = process.env.UNSPLASH_KEY;
-    const query = "motivational,inspiration,success,nature";
+    const query = "quote";
     const response = await fetch(
-      `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&count=50&orientation=portrait&client_id=${unsplashKey}`
+      `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&count=30&orientation=portrait&client_id=${unsplashKey}`
     );
     const images = await response.json();
 
@@ -82,7 +82,7 @@ async function main() {
       }
     }
 
-    console.log(`🎉 All images uploaded successfully for ${todayStr}`);
+    console.log(`🎉 All 30 images uploaded successfully for ${todayStr}`);
   } catch (err) {
     console.error("💥 Error in daily workflow:", err);
   }

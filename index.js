@@ -18,7 +18,7 @@ cloudinary.v2.config({
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert(FIREBASE_KEY),
-    databaseURL: "https://quotes-app-india-default-rtdb.firebaseio.com/"
+    databaseURL: "https://quotes-app-india-default-rtdb.firebaseio.com"
   });
 }
 const db = admin.database();

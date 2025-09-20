@@ -26,7 +26,7 @@ async function main() {
   try {
     // 🗓️ Dates
     const today = new Date();
-    const todayStr = today.toISOString().split("T")[0]; // e.g. "2025-09-20"
+    const todayStr = today.toISOString().split("T")[0];
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
     const yesterdayStr = yesterday.toISOString().split("T")[0];
@@ -50,7 +50,7 @@ async function main() {
 
     // 5️⃣ Fetch 30 motivational portrait images from Unsplash
     const unsplashKey = process.env.UNSPLASH_KEY;
-    const query = "quote";
+    const query = "quotes";
     const response = await fetch(
       `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&count=30&orientation=portrait&client_id=${unsplashKey}`
     );
@@ -61,25 +61,33 @@ async function main() {
       process.exit(1);
     }
 
-    // 6️⃣ Upload to Cloudinary + Save in Firebase
+    // 6️⃣ Upload to Cloudinary + Save in Firebase (parallel batches)
     const batchRef = db.ref(`daily_images/${todayStr}`);
-    for (const img of images) {
-      try {
-        const imageId = uuidv4();
-        const cloudRes = await cloudinary.v2.uploader.upload(img.urls.full, {
-          folder: `daily_images/${todayStr}`,
-          public_id: imageId
-        });
+    const chunkSize = 5; // upload 5 images at a time
 
-        await batchRef.child(imageId).set({
-          url: cloudRes.secure_url,
-          author: img.user?.name || "Unknown"
-        });
+    for (let i = 0; i < images.length; i += chunkSize) {
+      const chunk = images.slice(i, i + chunkSize);
 
-        console.log(`✅ Uploaded ${imageId}: ${cloudRes.secure_url}`);
-      } catch (err) {
-        console.error("❌ Upload failed for one image:", err.message);
-      }
+      const uploadPromises = chunk.map(async (img) => {
+        try {
+          const imageId = uuidv4();
+          const cloudRes = await cloudinary.v2.uploader.upload(img.urls.full, {
+            folder: `daily_images/${todayStr}`,
+            public_id: imageId
+          });
+
+          await batchRef.child(imageId).set({
+            url: cloudRes.secure_url,
+            author: img.user?.name || "Unknown"
+          });
+
+          console.log(`✅ Uploaded ${imageId}`);
+        } catch (err) {
+          console.error("❌ Upload failed:", err.message);
+        }
+      });
+
+      await Promise.allSettled(uploadPromises);
     }
 
     console.log(`🎉 All 30 images uploaded successfully for ${todayStr}`);
@@ -88,4 +96,13 @@ async function main() {
   }
 }
 
-main();
+// 7️⃣ Run main and exit cleanly
+main()
+  .then(() => {
+    console.log("🚀 Daily image script finished.");
+    process.exit(0);
+  })
+  .catch((err) => {
+    console.error("💥 Fatal error in script:", err);
+    process.exit(1);
+  });
